@@ -1,0 +1,1964 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>DBP Validation Studio</title>
+
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --panel: #fff;
+            --panel2: #f0f2f8;
+            --ink: #171a26;
+            --mut: #6a7089;
+            --line: #e2e5ef;
+            --pri: #4f46e5;
+            --priInk: #fff;
+            --ok: #16a34a;
+            --bad: #dc2626;
+            --unk: #d97706;
+            --okbg: #dcfce7;
+            --badbg: #fee2e2;
+            --unkbg: #fef3c7;
+            --sh:
+                0 1px 3px rgba(20, 24, 40, .08),
+                0 4px 14px rgba(20, 24, 40, .05);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f1117;
+            --panel: #181b25;
+            --panel2: #212533;
+            --ink: #e8eaf3;
+            --mut: #8f96ad;
+            --line: #2a2f40;
+            --pri: #818cf8;
+            --priInk: #0f1117;
+            --ok: #4ade80;
+            --bad: #f87171;
+            --unk: #fbbf24;
+            --okbg: #12301f;
+            --badbg: #3a1618;
+            --unkbg: #3a2c0e;
+            --sh: 0 1px 3px rgba(0, 0, 0, .4);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            font: inherit;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+        }
+
+        header h1 {
+            font-size: 16px;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .prog {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .bar {
+            height: 8px;
+            background: var(--panel2);
+            border-radius: 99px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+        }
+
+        .pt {
+            font-size: 12px;
+            color: var(--mut);
+            margin-top: 3px;
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            background: var(--panel2);
+        }
+
+        .btn.p {
+            background: var(--pri);
+            color: var(--priInk);
+            border-color: var(--pri);
+        }
+
+        .menu {
+            position: relative;
+        }
+
+        .dd {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--sh);
+            min-width: 200px;
+            z-index: 20;
+            padding: 4px;
+        }
+
+        .dd.open {
+            display: block;
+        }
+
+        .dd button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: 0;
+            background: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+
+        .dd button:hover {
+            background: var(--panel2);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        aside {
+            width: 300px;
+            border-right: 1px solid var(--line);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .sb {
+            padding: 10px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        input[type="text"],
+        input[type="search"],
+        textarea {
+            width: 100%;
+            background: var(--panel2);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font: inherit;
+        }
+
+        .chips {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            border: 1px solid var(--line);
+            background: none;
+            border-radius: 99px;
+            padding: 3px 10px;
+            font-size: 12px;
+        }
+
+        .chip.on {
+            background: var(--pri);
+            color: var(--priInk);
+            border-color: var(--pri);
+        }
+
+        #list {
+            overflow: auto;
+            flex: 1;
+        }
+
+        .it {
+            display: flex;
+            gap: 8px;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--line);
+            cursor: pointer;
+            align-items: flex-start;
+        }
+
+        .it:hover {
+            background: var(--panel2);
+        }
+
+        .it.cur {
+            background: var(--panel2);
+            box-shadow: inset 3px 0 var(--pri);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex: none;
+            background: var(--line);
+        }
+
+        .dot.v {
+            background: var(--ok);
+        }
+
+        .dot.i {
+            background: var(--bad);
+        }
+
+        .dot.n {
+            background: var(--unk);
+        }
+
+        .it span {
+            font-size: 13px;
+            overflow: hidden;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        section {
+            flex: 1;
+            overflow: auto;
+            padding: 18px;
+            min-width: 0;
+        }
+
+        .wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding-bottom: 110px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 18px;
+            box-shadow: var(--sh);
+        }
+
+        .lb {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--mut);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .q {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .a {
+            white-space: pre-wrap;
+        }
+
+        details summary {
+            cursor: pointer;
+            color: var(--mut);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        details pre {
+            white-space: pre-wrap;
+            margin: 8px 0 0;
+            font: 13px/1.5 inherit;
+            color: var(--mut);
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            background: var(--panel2);
+            color: var(--mut);
+        }
+
+        .badge.v {
+            background: var(--okbg);
+            color: var(--ok);
+        }
+
+        .badge.i {
+            background: var(--badbg);
+            color: var(--bad);
+        }
+
+        .badge.n {
+            background: var(--unkbg);
+            color: var(--unk);
+        }
+
+        .act {
+            position: fixed;
+            left: 300px;
+            right: 0;
+            bottom: 0;
+            background: var(--panel);
+            border-top: 1px solid var(--line);
+            padding: 10px 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            z-index: 10;
+        }
+
+        .lab {
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 700;
+            background: none;
+        }
+
+        .lab.v {
+            color: var(--ok);
+            border-color: var(--ok);
+        }
+
+        .lab.i {
+            color: var(--bad);
+            border-color: var(--bad);
+        }
+
+        .lab.n {
+            color: var(--unk);
+            border-color: var(--unk);
+        }
+
+        .lab.v.on {
+            background: var(--ok);
+            color: var(--priInk);
+        }
+
+        .lab.i.on {
+            background: var(--bad);
+            color: #fff;
+        }
+
+        .lab.n.on {
+            background: var(--unk);
+            color: #111;
+        }
+
+        .lab kbd,
+        .k {
+            font: 11px monospace;
+            opacity: .6;
+            margin-left: 6px;
+        }
+
+        .auto {
+            font-size: 12px;
+            color: var(--mut);
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        #loading {
+            margin: 60px auto;
+            max-width: 520px;
+            text-align: center;
+        }
+
+        #loading p {
+            color: var(--mut);
+        }
+
+        #msg {
+            color: var(--bad);
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        #tg {
+            display: none;
+        }
+
+        @media (max-width: 800px) {
+            aside {
+                position: fixed;
+                inset: 52px 0 0 0;
+                width: auto;
+                z-index: 15;
+                transform: translateX(-100%);
+                transition: .2s;
+            }
+
+            aside.open {
+                transform: none;
+            }
+
+            .act {
+                left: 0;
+            }
+
+            #tg {
+                display: inline-block !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <button class="btn" id="tg">☰</button>
+
+        <h1>DBP Validation</h1>
+
+        <div class="prog">
+            <div class="bar" id="bar"></div>
+            <div class="pt" id="pt">Loading dataset...</div>
+        </div>
+
+        <input type="text" id="ann" placeholder="Your name" style="width: 130px">
+
+        <button class="btn" id="th" title="Toggle light/dark">
+            🌓
+        </button>
+
+        <div class="menu">
+            <button class="btn p" id="exb">
+                Export ▾
+            </button>
+
+            <div class="dd" id="dd">
+                <button data-x="csv">
+                    Download All CSV
+                </button>
+
+                <button data-x="jsonl">
+                    Valid-only JSONL
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+
+        <aside id="side">
+            <div class="sb">
+
+                <input type="search" id="qs" placeholder="Search…">
+
+                <div class="chips" id="chips"></div>
+
+            </div>
+
+            <div id="list"></div>
+        </aside>
+
+        <section id="sec">
+
+            <div id="loading">
+                <h2>DBP Validation Studio</h2>
+
+                <p id="loadingText">
+                    Loading dataset from validation server...
+                </p>
+
+                <div id="msg"></div>
+
+                <button class="btn p hide" id="retry">
+                    Retry
+                </button>
+            </div>
+
+            <div class="wrap hide" id="view">
+
+                <div class="card">
+                    <div class="lb">
+                        <span>
+                            Question
+                            <span id="idx"></span>
+                        </span>
+
+                        <span class="badge" id="st"></span>
+                    </div>
+
+                    <div class="q" id="q"></div>
+                </div>
+
+                <div class="card">
+
+                    <div class="lb">
+                        Model answer
+                    </div>
+
+                    <div class="a" id="a"></div>
+
+                    <details id="thd" class="hide" style="margin-top: 10px">
+                        <summary>
+                            Show reasoning
+                        </summary>
+
+                        <pre id="th2"></pre>
+                    </details>
+
+                </div>
+
+                <div class="card" id="cxc">
+
+                    <details>
+                        <summary>
+                            DBP reference context
+                        </summary>
+
+                        <pre id="cx"></pre>
+                    </details>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="lb">
+                        Note (optional)
+                    </div>
+
+                    <textarea id="nt" rows="2" placeholder="Why invalid / unsure?"></textarea>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <div class="act hide" id="act">
+        <button class="btn" id="pv">
+            ← Prev
+        </button>
+
+        <button class="lab v" data-l="Valid">
+            Valid
+            <kbd>1</kbd>
+        </button>
+
+        <button class="lab i" data-l="Invalid">
+            Invalid
+            <kbd>2</kbd>
+        </button>
+
+        <button class="lab n" data-l="Not Sure">
+            Not sure
+            <kbd>3</kbd>
+        </button>
+
+        <button class="btn" id="nx">
+            Next →
+        </button>
+
+        <button class="btn" id="nu">
+            Next unlabeled
+            <span class="k">U</span>
+        </button>
+
+        <label class="auto">
+            <input type="checkbox" id="aa" checked>
+
+            auto-advance
+        </label>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        let items = [];
+        let labels = {};
+        let cur = 0;
+        let filt = "all";
+        let qs = "";
+        let fname = "dbp_1000.jsonl";
+
+        const ls = {
+            get: key => {
+                try {
+                    return localStorage.getItem(key);
+                } catch (error) {
+                    return null;
+                }
+            },
+
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (error) {
+                    console.error(
+                        "Local storage error:",
+                        error
+                    );
+                }
+            }
+        };
+
+        /*
+         * -------------------------------------------------------
+         * THEME
+         * -------------------------------------------------------
+         */
+
+        function theme(themeName) {
+            document.documentElement.dataset.theme =
+                themeName;
+
+            ls.set(
+                "dbp_theme",
+                themeName
+            );
+        }
+
+        theme(
+            ls.get("dbp_theme") ||
+            (
+                matchMedia(
+                    "(prefers-color-scheme: dark)"
+                ).matches
+                    ? "dark"
+                    : "light"
+            )
+        );
+
+        $("th").onclick = () => {
+            const currentTheme =
+                document.documentElement.dataset.theme;
+
+            theme(
+                currentTheme === "dark"
+                    ? "light"
+                    : "dark"
+            );
+        };
+
+        /*
+         * -------------------------------------------------------
+         * ANNOTATOR NAME
+         * -------------------------------------------------------
+         */
+
+        $("ann").value =
+            ls.get("dbp_ann") || "";
+
+        $("ann").oninput = event => {
+            ls.set(
+                "dbp_ann",
+                event.target.value
+            );
+        };
+
+        /*
+         * -------------------------------------------------------
+         * STATUS CONFIGURATION
+         * -------------------------------------------------------
+         */
+
+        const S = {
+            Valid: "v",
+            Invalid: "i",
+            "Not Sure": "n"
+        };
+
+        /*
+         * -------------------------------------------------------
+         * LOAD DATA FROM FASTAPI
+         * -------------------------------------------------------
+         */
+
+        async function loadFromAPI() {
+            $("msg").textContent = "";
+
+            $("loadingText").textContent =
+                "Loading dataset from validation server...";
+
+            $("retry").classList.add("hide");
+
+            try {
+                const response =
+                    await fetch("/api/items");
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Server returned ${response.status}`
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                if (
+                    !Array.isArray(data) ||
+                    data.length === 0
+                ) {
+                    throw new Error(
+                        "No QA items found in database."
+                    );
+                }
+
+                /*
+                 * Convert API fields into the format
+                 * expected by this frontend.
+                 */
+                items = data.map(item => ({
+                    id: item.id,
+                    dataset_index:
+                        item.dataset_index,
+
+                    q:
+                        item.question || "",
+
+                    a:
+                        item.model_answer || "",
+
+                    think:
+                        item.reasoning || "",
+
+                    ctx:
+                        item.dbp_context || "",
+
+                    label:
+                        item.label || null,
+
+                    note:
+                        item.note || "",
+
+                    annotator:
+                        item.annotator || "",
+
+                    validated_at:
+                        item.validated_at || ""
+                }));
+
+                /*
+                 * Build labels object from database.
+                 *
+                 * Important:
+                 * labels are NOT read from localStorage.
+                 */
+                labels = {};
+
+                items.forEach(
+                    (item, index) => {
+                        if (item.label) {
+                            labels[index] = {
+                                l: item.label,
+                                n:
+                                    item.note || "",
+                                by:
+                                    item.annotator || "",
+                                t:
+                                    item.validated_at || ""
+                            };
+                        }
+                    }
+                );
+
+                cur = 0;
+
+                $("loading").classList.add(
+                    "hide"
+                );
+
+                $("view").classList.remove(
+                    "hide"
+                );
+
+                $("act").classList.remove(
+                    "hide"
+                );
+
+                buildChips();
+                renderList();
+                render();
+
+            } catch (error) {
+                console.error(
+                    "Failed to load API:",
+                    error
+                );
+
+                $("loading").classList.remove(
+                    "hide"
+                );
+
+                $("view").classList.add(
+                    "hide"
+                );
+
+                $("act").classList.add(
+                    "hide"
+                );
+
+                $("loadingText").textContent =
+                    "Unable to load dataset.";
+
+                $("msg").textContent =
+                    "Could not connect to /api/items.\n" +
+                    "Make sure FastAPI and Nginx are running.";
+
+                $("retry").classList.remove(
+                    "hide"
+                );
+            }
+        }
+
+        $("retry").onclick =
+            loadFromAPI;
+
+        /*
+         * -------------------------------------------------------
+         * FILTERING
+         * -------------------------------------------------------
+         */
+
+        function vis() {
+            return items
+                .map(
+                    (item, index) => index
+                )
+                .filter(index => {
+                    const label =
+                        (
+                            labels[index] ||
+                            {}
+                        ).l;
+
+                    if (
+                        filt === "todo" &&
+                        label
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        filt !== "all" &&
+                        filt !== "todo" &&
+                        label !== filt
+                    ) {
+                        return false;
+                    }
+
+                    if (qs) {
+                        const item =
+                            items[index];
+
+                        const searchable =
+                            (
+                                item.q +
+                                " " +
+                                item.a
+                            ).toLowerCase();
+
+                        if (
+                            !searchable.includes(
+                                qs
+                            )
+                        ) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                });
+        }
+
+        /*
+         * -------------------------------------------------------
+         * FILTER CHIPS
+         * -------------------------------------------------------
+         */
+
+        function buildChips() {
+            $("chips").innerHTML = "";
+
+            const chipList = [
+                ["all", "All"],
+                ["todo", "To do"],
+                ["Valid", "Valid"],
+                ["Invalid", "Invalid"],
+                ["Not Sure", "Unsure"]
+            ];
+
+            chipList.forEach(
+                ([key, name]) => {
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+                    button.className =
+                        "chip" +
+                        (
+                            filt === key
+                                ? " on"
+                                : ""
+                        );
+
+                    button.textContent =
+                        name;
+
+                    button.onclick = () => {
+                        filt = key;
+
+                        buildChips();
+                        renderList();
+                    };
+
+                    $("chips").appendChild(
+                        button
+                    );
+                }
+            );
+        }
+
+        /*
+         * -------------------------------------------------------
+         * LEFT SIDEBAR LIST
+         * -------------------------------------------------------
+         */
+
+        function renderList() {
+            const list = $("list");
+
+            list.innerHTML = "";
+
+            const visibleItems =
+                vis();
+
+            visibleItems
+                .slice(0, 1500)
+                .forEach(index => {
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+                    div.className =
+                        "it" +
+                        (
+                            index === cur
+                                ? " cur"
+                                : ""
+                        );
+
+                    const label =
+                        (
+                            labels[index] ||
+                            {}
+                        ).l;
+
+                    div.innerHTML =
+                        '<i class="dot ' +
+                        (
+                            S[label] || ""
+                        ) +
+                        '"></i>' +
+                        "<span></span>";
+
+                    const item =
+                        items[index];
+
+                    div.lastChild.textContent =
+                        `${item.dataset_index}. ${item.q}`;
+
+                    div.onclick = () => {
+                        cur = index;
+
+                        render();
+
+                        $("side")
+                            .classList
+                            .remove("open");
+                    };
+
+                    list.appendChild(div);
+                });
+
+            if (!visibleItems.length) {
+                list.innerHTML =
+                    '<div class="it">' +
+                    "<span>No items</span>" +
+                    "</div>";
+            }
+        }
+
+        /*
+         * -------------------------------------------------------
+         * PROGRESS STATISTICS
+         * -------------------------------------------------------
+         */
+
+        function stats() {
+            const count = {
+                Valid: 0,
+                Invalid: 0,
+                "Not Sure": 0
+            };
+
+            Object
+                .values(labels)
+                .forEach(item => {
+                    if (
+                        count[item.l] != null
+                    ) {
+                        count[item.l]++;
+                    }
+                });
+
+            const total =
+                items.length;
+
+            const labeled =
+                count.Valid +
+                count.Invalid +
+                count["Not Sure"];
+
+            if (total === 0) {
+                $("bar").innerHTML = "";
+
+                $("pt").textContent =
+                    "0/0 labeled";
+
+                return;
+            }
+
+            const validPercentage =
+                count.Valid /
+                total *
+                100;
+
+            const invalidPercentage =
+                count.Invalid /
+                total *
+                100;
+
+            const unsurePercentage =
+                count["Not Sure"] /
+                total *
+                100;
+
+            $("bar").innerHTML = `
+                <i
+                    style="
+                        width: ${validPercentage}%;
+                        background: var(--ok)
+                    "
+                ></i>
+
+                <i
+                    style="
+                        width: ${invalidPercentage}%;
+                        background: var(--bad)
+                    "
+                ></i>
+
+                <i
+                    style="
+                        width: ${unsurePercentage}%;
+                        background: var(--unk)
+                    "
+                ></i>
+            `;
+
+            $("pt").textContent =
+                `${labeled}/${total} labeled · ` +
+                `✓${count.Valid} ` +
+                `✗${count.Invalid} ` +
+                `?${count["Not Sure"]}`;
+        }
+
+        /*
+         * -------------------------------------------------------
+         * RENDER CURRENT QA ITEM
+         * -------------------------------------------------------
+         */
+
+        function render() {
+            const item =
+                items[cur];
+
+            if (!item) {
+                return;
+            }
+
+            $("idx").textContent =
+                `#${item.dataset_index} of ${items.length}`;
+
+            $("q").textContent =
+                item.q;
+
+            $("a").textContent =
+                item.a;
+
+            $("thd").classList.toggle(
+                "hide",
+                !item.think
+            );
+
+            $("th2").textContent =
+                item.think;
+
+            $("cxc").classList.toggle(
+                "hide",
+                !item.ctx
+            );
+
+            $("cx").textContent =
+                item.ctx;
+
+            const validation =
+                labels[cur] || {};
+
+            $("st").textContent =
+                validation.l ||
+                "Unlabeled";
+
+            $("st").className =
+                "badge " +
+                (
+                    S[validation.l] || ""
+                );
+
+            $("nt").value =
+                validation.n || "";
+
+            document
+                .querySelectorAll(
+                    ".lab"
+                )
+                .forEach(button => {
+                    button.classList.toggle(
+                        "on",
+                        button.dataset.l ===
+                        validation.l
+                    );
+                });
+
+            stats();
+            renderList();
+
+            const selected =
+                document.querySelector(
+                    ".it.cur"
+                );
+
+            if (selected) {
+                selected.scrollIntoView({
+                    block: "nearest"
+                });
+            }
+
+            $("sec").scrollTop = 0;
+        }
+
+        /*
+         * -------------------------------------------------------
+         * SAVE VALIDATION TO FASTAPI / POSTGRESQL
+         * -------------------------------------------------------
+         */
+
+        async function setLabel(label) {
+            const item =
+                items[cur];
+
+            if (!item) {
+                return;
+            }
+
+            const annotator =
+                $("ann")
+                    .value
+                    .trim();
+
+            if (!annotator) {
+                alert(
+                    "Please enter your name first."
+                );
+
+                $("ann").focus();
+
+                return;
+            }
+
+            const note =
+                $("nt").value;
+
+            /*
+             * Prevent repeated clicking while
+             * request is being sent.
+             */
+            document
+                .querySelectorAll(
+                    ".lab"
+                )
+                .forEach(button => {
+                    button.disabled = true;
+                });
+
+            try {
+                const response =
+                    await fetch(
+                        "/api/validations",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                qa_item_id:
+                                    item.id,
+
+                                label:
+                                    label,
+
+                                note:
+                                    note,
+
+                                annotator:
+                                    annotator
+                            })
+                        }
+                    );
+
+                if (!response.ok) {
+                    const message =
+                        await response.text();
+
+                    throw new Error(
+                        message
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                labels[cur] = {
+                    l:
+                        result.label,
+
+                    n:
+                        result.note || "",
+
+                    by:
+                        result.annotator ||
+                        "",
+
+                    t:
+                        result.validated_at ||
+                        ""
+                };
+
+                /*
+                 * Also update local in-memory item
+                 * so exported data stays synchronized.
+                 */
+                item.label =
+                    result.label;
+
+                item.note =
+                    result.note || "";
+
+                item.annotator =
+                    result.annotator ||
+                    "";
+
+                item.validated_at =
+                    result.validated_at ||
+                    "";
+
+                if (
+                    $("aa").checked
+                ) {
+                    go(1);
+                } else {
+                    render();
+                }
+
+            } catch (error) {
+                console.error(
+                    "Failed to save validation:",
+                    error
+                );
+
+                alert(
+                    "Failed to save validation.\n" +
+                    "Please check the server."
+                );
+
+            } finally {
+                document
+                    .querySelectorAll(
+                        ".lab"
+                    )
+                    .forEach(button => {
+                        button.disabled = false;
+                    });
+            }
+        }
+
+        /*
+         * -------------------------------------------------------
+         * UPDATE NOTE FOR EXISTING VALIDATION
+         * -------------------------------------------------------
+         */
+
+        async function updateNote() {
+            const validation =
+                labels[cur];
+
+            /*
+             * If item has never been labelled,
+             * don't save note yet.
+             */
+            if (!validation) {
+                return;
+            }
+
+            const item =
+                items[cur];
+
+            if (!item) {
+                return;
+            }
+
+            const annotator =
+                $("ann")
+                    .value
+                    .trim();
+
+            try {
+                const response =
+                    await fetch(
+                        "/api/validations",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                qa_item_id:
+                                    item.id,
+
+                                label:
+                                    validation.l,
+
+                                note:
+                                    $("nt").value,
+
+                                annotator:
+                                    annotator ||
+                                    validation.by ||
+                                    null
+                            })
+                        }
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to update note."
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                validation.n =
+                    result.note || "";
+
+                validation.by =
+                    result.annotator ||
+                    validation.by ||
+                    "";
+
+                validation.t =
+                    result.validated_at ||
+                    validation.t ||
+                    "";
+
+                item.note =
+                    validation.n;
+
+                item.annotator =
+                    validation.by;
+
+                item.validated_at =
+                    validation.t;
+
+            } catch (error) {
+                console.error(
+                    "Failed to update note:",
+                    error
+                );
+            }
+        }
+
+        /*
+         * -------------------------------------------------------
+         * NAVIGATION
+         * -------------------------------------------------------
+         */
+
+        function go(direction) {
+            const visibleItems =
+                vis();
+
+            if (!visibleItems.length) {
+                render();
+                return;
+            }
+
+            let position =
+                visibleItems.indexOf(
+                    cur
+                );
+
+            if (position < 0) {
+                if (direction > 0) {
+                    cur =
+                        visibleItems.find(
+                            index =>
+                                index > cur
+                        ) ??
+                        visibleItems[
+                        visibleItems.length -
+                        1
+                        ];
+                } else {
+                    cur =
+                        [
+                            ...visibleItems
+                        ]
+                            .reverse()
+                            .find(
+                                index =>
+                                    index < cur
+                            ) ??
+                        visibleItems[0];
+                }
+            } else {
+                position =
+                    Math.min(
+                        visibleItems.length -
+                        1,
+                        Math.max(
+                            0,
+                            position +
+                            direction
+                        )
+                    );
+
+                cur =
+                    visibleItems[position];
+            }
+
+            render();
+        }
+
+        function nextUnlabeled() {
+            for (
+                let offset = 1;
+                offset <= items.length;
+                offset++
+            ) {
+                const index =
+                    (
+                        cur +
+                        offset
+                    ) %
+                    items.length;
+
+                if (!labels[index]) {
+                    cur = index;
+                    render();
+                    return;
+                }
+            }
+
+            alert(
+                "All items labeled 🎉"
+            );
+        }
+
+        /*
+         * -------------------------------------------------------
+         * BUTTON EVENTS
+         * -------------------------------------------------------
+         */
+
+        document
+            .querySelectorAll(
+                ".lab"
+            )
+            .forEach(button => {
+                button.onclick = () =>
+                    setLabel(
+                        button.dataset.l
+                    );
+            });
+
+        $("pv").onclick =
+            () => go(-1);
+
+        $("nx").onclick =
+            () => go(1);
+
+        $("nu").onclick =
+            nextUnlabeled;
+
+        /*
+         * Save note when user leaves textarea.
+         */
+        $("nt").onchange =
+            updateNote;
+
+        /*
+         * -------------------------------------------------------
+         * SEARCH
+         * -------------------------------------------------------
+         */
+
+        $("qs").oninput = event => {
+            qs =
+                event
+                    .target
+                    .value
+                    .toLowerCase();
+
+            renderList();
+        };
+
+        /*
+         * -------------------------------------------------------
+         * MOBILE SIDEBAR
+         * -------------------------------------------------------
+         */
+
+        $("tg").onclick = () => {
+            $("side")
+                .classList
+                .toggle("open");
+        };
+
+        /*
+         * -------------------------------------------------------
+         * KEYBOARD SHORTCUTS
+         * -------------------------------------------------------
+         */
+
+        addEventListener(
+            "keydown",
+            event => {
+                if (
+                    /INPUT|TEXTAREA/
+                        .test(
+                            event
+                                .target
+                                .tagName
+                        ) ||
+                    !items.length
+                ) {
+                    return;
+                }
+
+                if (
+                    event.key === "1"
+                ) {
+                    setLabel(
+                        "Valid"
+                    );
+
+                } else if (
+                    event.key === "2"
+                ) {
+                    setLabel(
+                        "Invalid"
+                    );
+
+                } else if (
+                    event.key === "3"
+                ) {
+                    setLabel(
+                        "Not Sure"
+                    );
+
+                } else if (
+                    event.key ===
+                    "ArrowRight"
+                ) {
+                    go(1);
+
+                } else if (
+                    event.key ===
+                    "ArrowLeft"
+                ) {
+                    go(-1);
+
+                } else if (
+                    event.key
+                        .toLowerCase() ===
+                    "u"
+                ) {
+                    nextUnlabeled();
+                }
+            }
+        );
+
+        /*
+         * -------------------------------------------------------
+         * EXPORT HELPERS
+         * -------------------------------------------------------
+         */
+
+        function csvCell(value) {
+            value =
+                String(
+                    value ?? ""
+                );
+
+            if (
+                /[",\n\r]/
+                    .test(value)
+            ) {
+                return (
+                    '"' +
+                    value.replace(
+                        /"/g,
+                        '""'
+                    ) +
+                    '"'
+                );
+            }
+
+            return value;
+        }
+
+        function makeCsv() {
+            const rows = [
+                [
+                    "id",
+                    "question",
+                    "answer",
+                    "label",
+                    "note",
+                    "annotator",
+                    "timestamp"
+                ]
+            ];
+
+            items.forEach(
+                (item, index) => {
+                    const validation =
+                        labels[index] ||
+                        {};
+
+                    rows.push([
+                        item.dataset_index,
+                        item.q,
+                        item.a,
+                        validation.l || "",
+                        validation.n || "",
+                        validation.by || "",
+                        validation.t || ""
+                    ]);
+                }
+            );
+
+            return (
+                "\uFEFF" +
+                rows
+                    .map(row =>
+                        row
+                            .map(csvCell)
+                            .join(",")
+                    )
+                    .join("\r\n")
+            );
+        }
+
+        /*
+         * -------------------------------------------------------
+         * FILE DOWNLOAD
+         * -------------------------------------------------------
+         */
+
+        async function saveFile(
+            name,
+            content,
+            mime
+        ) {
+            const blob =
+                new Blob(
+                    [content],
+                    {
+                        type: mime
+                    }
+                );
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+            link.href = url;
+            link.download = name;
+
+            document.body.appendChild(
+                link
+            );
+
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(
+                url
+            );
+        }
+
+        const base = () =>
+            fname.replace(
+                /\.[^.]+$/,
+                ""
+            ) +
+            "_labels";
+
+        /*
+         * -------------------------------------------------------
+         * EXPORT MENU
+         * -------------------------------------------------------
+         */
+
+        $("exb").onclick = event => {
+            event.stopPropagation();
+
+            $("dd")
+                .classList
+                .toggle("open");
+        };
+
+        addEventListener(
+            "click",
+            () => {
+                $("dd")
+                    .classList
+                    .remove("open");
+            }
+        );
+
+        async function downloadExport(
+            url,
+            filename
+        ) {
+            try {
+                const response =
+                    await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Export failed: ${response.status}`
+                    );
+                }
+
+                const blob =
+                    await response.blob();
+
+                const downloadUrl =
+                    URL.createObjectURL(blob);
+
+                const link =
+                    document.createElement("a");
+
+                link.href =
+                    downloadUrl;
+
+                link.download =
+                    filename;
+
+                document.body.appendChild(
+                    link
+                );
+
+                link.click();
+
+                link.remove();
+
+                URL.revokeObjectURL(
+                    downloadUrl
+                );
+
+            } catch (error) {
+                console.error(
+                    "Export error:",
+                    error
+                );
+
+                alert(
+                    "Failed to download export.\n" +
+                    "Please check the server."
+                );
+            }
+        }
+
+        $("dd").onclick =
+            async event => {
+
+                const action =
+                    event
+                        .target
+                        .dataset
+                        .x;
+
+                if (!action) {
+                    return;
+                }
+
+                /*
+                 * Export ALL records.
+                 * This includes records that are still
+                 * unlabeled.
+                 */
+                if (action === "csv") {
+
+                    await downloadExport(
+                        "/api/export/csv",
+                        "dbp_validation_export.csv"
+                    );
+                }
+
+                /*
+                 * Valid-only JSONL
+                 *
+                 * This one still uses the data already
+                 * loaded in the frontend.
+                 */
+                else if (action === "jsonl") {
+
+                    const validItems =
+                        items
+                            .filter(
+                                (item, index) =>
+                                    (
+                                        labels[index] ||
+                                        {}
+                                    ).l === "Valid"
+                            )
+                            .map(item =>
+                                JSON.stringify({
+                                    question:
+                                        item.q,
+
+                                    answer:
+                                        item.a
+                                })
+                            )
+                            .join("\n");
+
+                    if (!validItems) {
+                        alert(
+                            "No Valid items to export yet."
+                        );
+
+                        return;
+                    }
+
+                    await saveFile(
+                        "dbp_valid_only.jsonl",
+                        validItems,
+                        "application/x-ndjson"
+                    );
+                }
+            };
+
+        /*
+         * -------------------------------------------------------
+         * START APPLICATION
+         * -------------------------------------------------------
+         */
+
+        loadFromAPI();
+    </script>
+
+</body>
+
+</html>

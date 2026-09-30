@@ -1,0 +1,68 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: dbp-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: dbp_validation
+      POSTGRES_USER: dbp_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U dbp_user -d dbp_validation"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: dbp-backend
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: postgresql+psycopg2://dbp_user:${POSTGRES_PASSWORD}@postgres:5432/dbp_validation
+      JSONL_PATH: /app/data/dbp_1000.jsonl
+
+    volumes:
+      - ./dbp_1000.jsonl:/app/data/dbp_1000.jsonl:ro
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+
+    container_name: dbp-nginx
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:
